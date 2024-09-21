@@ -47,8 +47,8 @@ int laneNum=1;
 
 const float multi=1;
 const int turnAmt=30;
-const int speed=160;
-const int turnSpeed=160;
+const int speed=225;
+const int turnSpeed=200;
 
 void setup(void)
 {
@@ -94,20 +94,26 @@ void loop(void)
     analogWrite(me, speed);
 
 
- if(fd<80){
+ if(fd<90){
   if(lapCount==0 && laneNum==1){
     rd=distCalc(rt, re);
   ld=distCalc(lt, le);
-   if (rd>ld) {
+   if (rd>100) {
     isR=true;
-   }else {
+   }else if (ld>100) {
     isR=false;
    }
   }
  if (isR) {
-   turnR();
+      rd=distCalc(rt, re);
+  if (rd>100) {
+     turnR();
+  }
    }else {
-   turnL();
+      ld=distCalc(lt, le);
+    if (ld>100) {
+       turnL();
+    }
    }
   }
  
@@ -185,7 +191,7 @@ float distCalc(int trigPin,int echoPin){
   return(echoD); 
 }
 
-float spikeDiff=10.0;
+float spikeDiff=100.0;
 float prevDist=100.0;
 float tempDist=0.0;
 float fdistCalc(int trigPin,int echoPin){
