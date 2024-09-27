@@ -6,9 +6,11 @@
 Servo ser;
 
 #include <Pixy2.h>
-
+#include <Adafruit_NeoPixel.h>
 // This is the main Pixy object 
 Pixy2 pixy;
+
+Adafruit_NeoPixel pixels(10, 9, NEO_GRB + NEO_KHZ800);
 
 uint16_t BNO055_SAMPLERATE_DELAY_MS = 100;
 
@@ -46,9 +48,9 @@ int dif=0;
 int laneNum=1;
 
 const float multi=1;
-const int turnAmt=30;
+const int turnAmt=40;
 const int speed=150;
-const int turnSpeed=180;
+const int turnSpeed=200;
 
 void setup(void)
 {
@@ -65,7 +67,8 @@ void setup(void)
   pinMode(ms, OUTPUT);
   Serial.begin(9600);
   pixy.init();
-
+pixels.begin();
+pixels.show();
   /* Initialise the sensor */ 
   if (!bno.begin())
   {    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
@@ -79,6 +82,12 @@ void setup(void)
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
   digitalWrite(ms, HIGH);
+
+  pixels.setBrightness(255);
+  for (int i=0; i<10; i++) {
+      pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+  }
+  pixels.show();
 }
 bool isR=true;
 int turnDist=90;
@@ -97,10 +106,10 @@ void loop(void)
     analogWrite(me, speed);
 
 
- if(fd<turnDist||pixy.ccc.numBlocks){
    if (pixy.ccc.numBlocks) {
-    Serial.println("pixy turn");
 
+    Serial.println("pixy turn");
+    if (getBigBlockH()>50){
     if (getBigBlock()==1) {
       turnRed();
       Serial.println("red");
@@ -109,6 +118,7 @@ void loop(void)
       Serial.println("green");
 
     }
+   }
   }else if (fd<turnDist) {
     if(lapCount==0 && laneNum==1){
     rd=distCalc(rt, re);
@@ -132,7 +142,7 @@ void loop(void)
    }
   }
 
-  }
+  
  
   switch (laneNum) {
   case 1:
@@ -420,7 +430,7 @@ void turnRed(){
   }else {
     Serial.println("Red left, Big Right Turn");
     initial=millis();
-    while (getBigBlockH()>50&&getBigBlockC()>20) {
+    while (getBigBlockH()>40&&getBigBlockC()>20) {
       ser.write(str+dodgeAmtRed);
       Serial.print(getBigBlockH());
       Serial.print("\t");
@@ -446,7 +456,7 @@ void turnGreen(){
   }else {
     Serial.println("Green left, Steep Left Turn");
     initial=millis();
-    while (getBigBlockH()>50&&getBigBlockC()<280) {
+    while (getBigBlockH()>40&&getBigBlockC()<280) {
       ser.write(str-dodgeAmtGreen);
       Serial.print(getBigBlockH());
       Serial.print("\t");

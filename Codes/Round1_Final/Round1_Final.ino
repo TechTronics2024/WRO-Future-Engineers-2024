@@ -46,8 +46,8 @@ int dif=0;
 int laneNum=1;
 
 const float multi=1;
-const int turnAmt=30;
-const int speed=225;
+const int turnAmt=25;
+const int speed=200;
 const int turnSpeed=200;
 
 void setup(void)
