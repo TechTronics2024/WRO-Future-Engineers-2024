@@ -24,10 +24,10 @@ const int mb = 5;
 const int me = 3;
 const int ms = 6;
 
-const int rt = A2;
-const int re = A3;
-const int lt = A0;
-const int le = A1;
+const int rt = A0;
+const int re = A1;
+const int lt = A2;
+const int le = A3;
 const int ft = 7;
 const int fe = 8;
 
@@ -46,9 +46,12 @@ int dif=0;
 int laneNum=1;
 
 const float multi=1;
-const int turnAmt=25;
+const int turnAmtL=45;
+const int turnAmtR=30;
+
 const int speed=200;
 const int turnSpeed=200;
+const int slowSpeed=140;
 
 void setup(void)
 {
@@ -95,6 +98,7 @@ void loop(void)
 
 
  if(fd<90){
+  analogWrite(me, slowSpeed);
   if(lapCount==0 && laneNum==1){
     rd=distCalc(rt, re);
   ld=distCalc(lt, le);
@@ -115,6 +119,8 @@ void loop(void)
        turnL();
     }
    }
+  }else {
+  analogWrite(me, speed);
   }
  
   switch (laneNum) {
@@ -186,7 +192,10 @@ float distCalc(int trigPin,int echoPin){
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
-  echoD=pulseIn(echoPin, HIGH);
+  echoD=pulseIn(echoPin, HIGH, 6984);
+  if (echoD==0) {
+  echoD=6984;//120
+  }
   echoD=(echoD/2) / 29.1;
   return(echoD); 
 }
@@ -200,17 +209,20 @@ float fdistCalc(int trigPin,int echoPin){
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
-  echoD=pulseIn(echoPin, HIGH);
-  echoD=(echoD/2) / 29.1;
-  if (abs(echoD-prevDist)>spikeDiff){
-    tempDist=prevDist;
-    prevDist=echoD;
-    return(tempDist);
-  }else {
-    prevDist=echoD;
-    return(echoD);
+  echoD=pulseIn(echoPin, HIGH,11640);
+  if (echoD==0) {
+  echoD=11640;//200
   }
-   
+  echoD=(echoD/2) / 29.1;
+  // if (abs(echoD-prevDist)>spikeDiff){
+  //   tempDist=prevDist;
+  //   prevDist=echoD;
+  //   return(tempDist);
+  // }else {
+  //   prevDist=echoD;
+  //   return(echoD);
+  // }
+   return(echoD);
 }
 
 void turnL(){
@@ -226,7 +238,7 @@ void turnL(){
 
         printData();
 
-      ser.write(str-turnAmt);
+      ser.write(str-turnAmtL);
     }
     pos=str;
     ser.write(pos);
@@ -242,7 +254,7 @@ void turnL(){
         printData();
 
 
-      ser.write(str-turnAmt);
+      ser.write(str-turnAmtL);
     }
     pos=str;
     ser.write(pos);
@@ -258,14 +270,14 @@ void turnL(){
 
         printData();
 
-      ser.write(str-turnAmt);
+      ser.write(str-turnAmtL);
     }
     pos=str;
     ser.write(pos);
     laneNum=4;
     break;
   case 4:
-     while (bx<250) { //270 to 250
+     while (bx>20) { //270 to 250
       sensors_event_t orientationData;
       bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
       bx=getAngle(&orientationData);
@@ -273,17 +285,21 @@ void turnL(){
 
         printData();
 
-      ser.write(str-turnAmt);
+      ser.write(str-turnAmtL);
     }
     Serial.println("skfjkbjakdsnf");
     pos=str;
     ser.write(pos);
     if (lapCount>=2){
-       analogWrite(me, 0);
-  digitalWrite(mf, LOW);
-  digitalWrite(mb, LOW);
-  digitalWrite(ms, LOW);
- // ser.detach();
+      delay(200);
+      while (rd>100&&ld>100) {
+        analogWrite(me, slowSpeed);
+      }
+      analogWrite(me, 0);
+      digitalWrite(mf, LOW);
+      digitalWrite(mb, LOW);
+      digitalWrite(ms, LOW);
+      ser.detach();
     }
     lapCount++;
     laneNum=1;
@@ -307,14 +323,14 @@ void turnR(){
 
         printData();
 
-      ser.write(str+turnAmt);
+      ser.write(str+turnAmtR);
     }
     pos=str;
     ser.write(pos);
     laneNum=4;
     break;
   case 2:
-     while (bx>90&&bx<340) {
+     while (bx<340) {
       sensors_event_t orientationData;
       bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
       bx=getAngle(&orientationData);
@@ -322,16 +338,22 @@ void turnR(){
 
         printData();
 
-      ser.write(str+turnAmt);
+      ser.write(str+turnAmtR);
     }
     pos=str;
     ser.write(pos);
+    
     if (lapCount>=2){
-       analogWrite(me, 0);
-  digitalWrite(mf, LOW);
-  digitalWrite(mb, LOW);
-  digitalWrite(ms, LOW);
- // ser.detach();
+      delay(200);
+      while (rd>100&&ld>100) {
+        analogWrite(me, slowSpeed);
+      }
+      delay(400);
+      analogWrite(me, 0);
+      digitalWrite(mf, LOW);
+      digitalWrite(mb, LOW);
+      digitalWrite(ms, LOW);
+      ser.detach();
     }
     lapCount++;
     laneNum=1;
@@ -346,7 +368,7 @@ void turnR(){
 
         printData();
 
-      ser.write(str+turnAmt);
+      ser.write(str+turnAmtR);
     }
     pos=str;
     ser.write(pos);
@@ -361,7 +383,7 @@ void turnR(){
 
         printData();
 
-      ser.write(str+turnAmt);
+      ser.write(str+turnAmtR);
     }
     Serial.println("skfjkbjakdsnf");
     pos=str;
