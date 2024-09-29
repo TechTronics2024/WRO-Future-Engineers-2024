@@ -46,7 +46,7 @@ int dif=0;
 int laneNum=1;
 
 const float multi=1;
-const int turnAmtL=45;
+const int turnAmtL=40;
 const int turnAmtR=30;
 
 const int speed=255;

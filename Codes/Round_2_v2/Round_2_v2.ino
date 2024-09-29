@@ -54,8 +54,8 @@ const int turnAmtR=30;
 const int speed=120;
 const int turnSpeed=200;
 
-const int turnSlowSpeed=200;
-
+const int turnSlowSpeed=170;
+bool afterReverse=false;
 
 
 void setup(void)
@@ -88,16 +88,16 @@ pixels.show();
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
   digitalWrite(ms, HIGH);
-
-  pixels.setBrightness(150);
+  //pixy.setLED(0, 0, 0);
+  pixels.setBrightness(255);
   for (int i=0; i<10; i++) {
-      pixels.setPixelColor(i, pixels.Color(255, 255, 220));
       pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+      //pixels.setPixelColor(i, pixels.Color(0, 0, 0));
   }
   pixels.show();
 }
 bool isR=true;
-int turnDist=90;
+int turnDist=60;
 void loop(void)
 {
   sensors_event_t orientationData;
@@ -111,12 +111,16 @@ void loop(void)
 
    printData();
     analogWrite(me, speed);
+    
+    
+    
 
 
    if (pixy.ccc.numBlocks) {
 
     Serial.println("pixy turn");
     if (getBigBlockH()>50){
+      afterReverse=false;
     if (getBigBlock()==1) {
       turnRed();
       Serial.println("red");
@@ -126,8 +130,121 @@ void loop(void)
 
     }
    }
-  }else if ((fd<turnDist)&&((355<bx<5)||(85<bx<95)||(175<bx<185)||(265<bx<275))) {
-    if(lapCount==0 && laneNum==1){
+  }else{
+    switch (laneNum) {
+  case 1:
+    if ((fd<turnDist)&&(355<bx<5)) {
+    turnCheck();
+  }
+    break;
+
+  case 2:
+    if ((fd<turnDist)&&(265<bx<275)) {
+        turnCheck();
+    }
+
+    break;
+  case 3:
+    if ((fd<turnDist)&&(175<bx<185)) {
+        turnCheck();
+    }
+
+    break;
+  case 4:
+    if ((fd<turnDist)&&(85<bx<95)) {
+        turnCheck();
+    }
+    break;
+
+  }
+  } 
+  if (afterReverse){
+    rd=distCalc(rt, re);
+    ld=distCalc(ld, le);
+      if (rd<100&&isR){
+        afterReverse=false;
+      }
+      if (ld<100&&!isR){
+        afterReverse=false;
+      }
+  }
+
+  if (afterReverse) {
+  for (int i=0; i<10; i++) {
+      pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+  pixy.setLED(0, 255, 0);
+      //pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+  }
+  }else {
+  for (int i=0; i<10; i++) {
+      pixels.setPixelColor(i, pixels.Color(0, 0, 255));
+      //pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+  }
+  pixy.setLED(0, 0, 255);
+  }
+  
+  switch (laneNum) {
+    case 1:
+      if (bx<180) {
+        pos=str-bx*multi;
+        ser.write(pos);//left
+      }else if(bx>180){
+        pos=str+(360-bx)*multi;
+        ser.write(pos);//right
+      }else {
+        pos=str;
+        ser.write(pos);
+      }
+      break;
+
+    case 2:
+      if (bx<270) {
+        pos=str+(270-bx)*multi;
+        ser.write(pos);//left
+      }else if(bx>270){
+        pos=str-(bx-270)*multi;
+        ser.write(pos);//right
+      }else {
+        pos=str;
+        ser.write(pos);
+      }
+      break;
+    case 3:
+      if (bx>180) {
+        pos=str+(180-bx)*multi;
+        ser.write(pos);//left
+      }else if(bx<180){
+        pos=str-(bx-180)*multi;
+        ser.write(pos);//right
+      }else {
+        pos=str;
+        ser.write(pos);
+      }
+      break;
+    case 4:
+      if (bx<90) {
+        pos=str+(90-bx)*multi;
+        ser.write(pos);//left
+      }else if(bx>90){
+        pos=str-(bx-90)*multi;
+        ser.write(pos);//right
+      }else {
+        pos=str;
+        ser.write(pos);
+      }
+      break;
+
+  }
+
+}
+int fdSum=0;
+void turnCheck(){
+  for (int i=0; i<5; i++) {
+  fd=fdistCalc(ft, fe);
+  fdSum+=fd;
+  }
+  if(fdSum/5>75){
+  if(lapCount==0 && laneNum==1) {
     rd=distCalc(rt, re);
     ld=distCalc(lt, le);
    if (rd>100) {
@@ -137,71 +254,37 @@ void loop(void)
    }
   }
  if (isR) {
-      rd=distCalc(rt, re);
-  if (rd>100&&rd>ld) {
-     turnR();
-  }
+    rd=distCalc(rt, re);
+    fd=fdistCalc(ft, fe);
+    
+    if (rd>100&&!afterReverse) {
+      while (fd<70) {
+        fd=fdistCalc(ft, fe);
+      digitalWrite(mf, LOW);
+      digitalWrite(mb, HIGH);
+      }
+      digitalWrite(mf, HIGH);
+      digitalWrite(mb, LOW);
+      turnR();
+    }
+    
    }else {
       ld=distCalc(lt, le);
-    if (ld>100&&ld>rd) {
-       turnL();
+       fd=fdistCalc(ft, fe);
+      
+    if (ld>100&&!afterReverse) {
+      while (fd<70) {
+        fd=fdistCalc(ft, fe);
+
+      digitalWrite(mf, LOW);
+      digitalWrite(mb, HIGH);
+      }
+      digitalWrite(mf, HIGH);
+      digitalWrite(mb, LOW);
+      turnL();
+
     }
    }
-  }
-
-  
- 
-  switch (laneNum) {
-  case 1:
-    if (bx<180) {
-      pos=(str-bx)*multi;
-      ser.write(pos);//left
-    }else if(bx>180){
-      pos=(str+(360-bx))*multi;
-      ser.write(pos);//right
-    }else {
-      pos=str;
-      ser.write(pos);
-    }
-    break;
-
-  case 2:
-    if (bx<270) {
-      pos=(str+(270-bx))*multi;
-      ser.write(pos);//left
-    }else if(bx>270){
-      pos=(str-(bx-270))*multi;
-      ser.write(pos);//right
-    }else {
-      pos=str;
-      ser.write(pos);
-    }
-    break;
-  case 3:
-    if (bx>180) {
-      pos=(str+(180-bx))*multi;
-      ser.write(pos);//left
-    }else if(bx<180){
-      pos=(str-(bx-180))*multi;
-      ser.write(pos);//right
-    }else {
-      pos=str;
-      ser.write(pos);
-    }
-    break;
-  case 4:
-    if (bx<90) {
-      pos=(str+(90-bx))*multi;
-      ser.write(pos);//left
-    }else if(bx>90){
-      pos=(str-(bx-90))*multi;
-      ser.write(pos);//right
-    }else {
-      pos=str;
-      ser.write(pos);
-    }
-    break;
-
   }
 }
 
@@ -325,11 +408,14 @@ void turnL(){
     laneNum=1;
     break;
   }
+  analogWrite(me, speed);
   digitalWrite(mf, LOW);
   digitalWrite(mb, HIGH);
-  delay(800);
+  delay(1500);
+  afterReverse=true;
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
+
 }
   
 
@@ -415,9 +501,12 @@ void turnR(){
     laneNum=3;
     break;
   }
+
+  analogWrite(me, speed);
   digitalWrite(mf, LOW);
   digitalWrite(mb, HIGH);
-  delay(800);
+  delay(1500);
+  afterReverse=true;
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
 }
@@ -465,12 +554,13 @@ void turnRed(){
     while (getBigBlockC()>250) {
     digitalWrite(mf, LOW);
   digitalWrite(mb, HIGH);
-    }
+  delay(50);
+      }
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
    Serial.println("Red left, Big Right Turn");
     initial=millis();
-    while (getBigBlockH()>40&&getBigBlockC()>20) {
+    while (getBigBlockH()>30&&getBigBlockC()>20) {
       ser.write(str+dodgeAmtRight);
       Serial.print(getBigBlockH());
       Serial.print("\t");
@@ -531,17 +621,17 @@ void turnGreen(){
   digitalWrite(mb, LOW);
   Serial.println("Green left, Steep Left Turn");
     initial=millis();
-    while (getBigBlockH()>40&&getBigBlockC()<280) {
+    while (getBigBlockH()>30&&getBigBlockC()<280) {
       ser.write(str-dodgeAmtLeft);
       Serial.print(getBigBlockH());
       Serial.print("\t");
       Serial.println(getBigBlockC());
     }
-    delay(100);
+    delay(300);
     after=millis();
-    ser.write(str+dodgeAmtRight);
+    ser.write(str+dodgeAmtRight+5);
     Serial.println(after-initial);
-    //delay(500);
+    delay(500);
     delay(after-initial);
     ser.write(str);
     
@@ -560,7 +650,7 @@ void turnGreen(){
     after=millis();
     ser.write(str+dodgeAmtRight);
     Serial.println(after-initial);
-    //delay(500);
+    delay(500);
     delay(after-initial);
     ser.write(str);
     Serial.println("done");
