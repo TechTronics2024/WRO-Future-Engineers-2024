@@ -50,8 +50,8 @@ const int turnAmtL=40;
 const int turnAmtR=30;
 
 const int speed=255;
-const int turnSpeed=200;
-const int slowSpeed=140;
+const int turnSpeed=255;
+const int slowSpeed=180;
 
 void setup(void)
 {
@@ -97,7 +97,7 @@ void loop(void)
     analogWrite(me, speed);
 
 
- if(fd<110){
+ if(fd<110&&((355<bx<5)||(85<bx<95)||(175<bx<185)||(265<bx<275))){
   analogWrite(me, slowSpeed);
   if(lapCount==0 && laneNum==1){
     rd=distCalc(rt, re);

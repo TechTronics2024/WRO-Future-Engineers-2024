@@ -51,7 +51,7 @@ const float multi=1;
 const int turnAmtL=45;
 const int turnAmtR=30;
 
-const int speed=120;
+const int speed=130;
 const int turnSpeed=150;
 
 const int turnSlowSpeed=180;
@@ -217,55 +217,60 @@ void loop(void)
     case 1:
       if (bx<180) {
         pos=str-bx*multi;
-        ser.write(pos);//left
+        //ser.write(pos);//left
       }else if(bx>180){
         pos=str+(360-bx)*multi;
-        ser.write(pos);//right
+        //ser.write(pos);//right
       }else {
         pos=str;
-        ser.write(pos);
+        //ser.write(pos);
       }
       break;
 
     case 2:
       if (bx<270) {
         pos=str+(270-bx)*multi;
-        ser.write(pos);//left
+        //ser.write(pos);//left
       }else if(bx>270){
         pos=str-(bx-270)*multi;
-        ser.write(pos);//right
+        //ser.write(pos);//right
       }else {
         pos=str;
-        ser.write(pos);
+        //ser.write(pos);
       }
       break;
     case 3:
       if (bx>180) {
         pos=str+(180-bx)*multi;
-        ser.write(pos);//left
+        //ser.write(pos);//left
       }else if(bx<180){
         pos=str-(bx-180)*multi;
-        ser.write(pos);//right
+        //ser.write(pos);//right
       }else {
         pos=str;
-        ser.write(pos);
+        //ser.write(pos);
       }
       break;
     case 4:
       if (bx<90) {
         pos=str+(90-bx)*multi;
-        ser.write(pos);//left
+        //ser.write(pos);//left
       }else if(bx>90){
         pos=str-(bx-90)*multi;
-        ser.write(pos);//right
+        //ser.write(pos);//right
       }else {
         pos=str;
-        ser.write(pos);
+        //ser.write(pos);
       }
       break;
 
   }
-
+  if(pos>120){
+    pos=120;
+  }else if (pos<50) {
+    pos=50;
+  }
+  ser.write(pos);
 }
 int fdSum=0;
 void turnCheck(){
@@ -459,7 +464,7 @@ void turnR(){
       analogWrite(me, turnSpeed);
       ser.write(str+turnAmtR);
       delay(400);
-digitalWrite(mf, LOW);
+  digitalWrite(mf, LOW);
   digitalWrite(mb, HIGH);
   switch (laneNum) {
   case 1:
@@ -546,7 +551,8 @@ digitalWrite(mf, LOW);
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
 }
-  void printData(){
+
+void printData(){
       Serial.print("\tx= ");
       Serial.print(bx);
       Serial.print("\tdist= ");
@@ -555,7 +561,7 @@ digitalWrite(mf, LOW);
       Serial.print(pos);
       Serial.print("\tLane = ");
       Serial.println(laneNum);
-    }
+}
 
   
 long long initial=0;
@@ -587,13 +593,16 @@ void turnRed(){
   }
   else if (x>250) {
     int count = 0;
+    digitalWrite(mf, LOW);
+  digitalWrite(mb, HIGH);
+  delay(300);
     while (getBigBlockC()>240) {
     digitalWrite(mf, LOW);
   digitalWrite(mb, HIGH);
       ser.write(str-dodgeAmtLeft);
-  if (count<3) {
-  delay(100);
-  }
+  // if (count<3) {
+  // delay(100);
+  // }
   //delay(50);
       }
   digitalWrite(mf, HIGH);
@@ -610,14 +619,28 @@ void turnRed(){
       Serial.print("\t");
       Serial.println(getBigBlockC());
     }
-    delay(200);
+    delay(50);
     after=millis();
     ser.write(str-dodgeAmtLeft);
   //  Serial.println(after-initial);
-    delay(300);
-    delay(after-initial);
+    //delay(500);
+    delay((after-initial)*1.4);
     ser.write(str);
     Serial.println("done");
+
+    // if (isR) {
+    // ld=distCalc(lt, le);
+    // if (ld>70) {
+    // ser.write(str+dodgeAmtRight);
+    // delay(400);
+    // }
+    // }else {
+    // rd=distCalc(rt, re);
+    // if (rd<30) {
+    // ser.write(str-dodgeAmtLeft);
+    // delay(400)
+    // }
+    // }
 }
 }
 
@@ -639,29 +662,18 @@ void turnGreen(){
   digitalWrite(mb, LOW);
   }
   else if (x<25) {
-  ser.write(str+dodgeAmtRight);
+  digitalWrite(mf, LOW);
+    digitalWrite(mb, HIGH);
+  delay(300);
+
   while(getBigBlockC()<25){
+  ser.write(str+dodgeAmtRight);
     digitalWrite(mf, LOW);
     digitalWrite(mb, HIGH);
   }
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
-  Serial.println("Green left, Steep Left Turn");
-    initial=millis();
-    while (getBigBlockH()>30&&getBigBlockC()<280) {
-      ser.write(str-dodgeAmtLeft);
-      Serial.print(getBigBlockH());
-      Serial.print("\t");
-      Serial.println(getBigBlockC());
-    }
-    delay(300);
-    after=millis();
-    ser.write(str+dodgeAmtRight+5);
-  //  Serial.println(after-initial);
-    delay(500);
-    delay(after-initial);
-    ser.write(str);
-    
+  
   }
   
   else {
@@ -677,9 +689,8 @@ void turnGreen(){
     after=millis();
     ser.write(str+dodgeAmtRight);
   //  Serial.println(after-initial);
-    delay(500);
     delay(after-initial);
-    ser.write(str);
+    ser.write(str*1.4);
     Serial.println("done");
     //delay(500);
   }
