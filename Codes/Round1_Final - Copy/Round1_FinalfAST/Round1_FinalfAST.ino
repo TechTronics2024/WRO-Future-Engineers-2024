@@ -348,7 +348,7 @@ void turnR(){
       while (rd>100&&ld>100) {
         analogWrite(me, slowSpeed);
       }
-      delay(400);
+      delay(200);
       analogWrite(me, 0);
       digitalWrite(mf, LOW);
       digitalWrite(mb, LOW);

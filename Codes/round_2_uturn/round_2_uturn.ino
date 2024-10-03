@@ -20,7 +20,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28, &Wire);
 int str = 98;
 int pos=str;
 int strdev = 0;
-
+bool uturn=false;
 const int mf = 4;
 const int mb = 5;
 const int me = 3;
@@ -47,6 +47,7 @@ int dif=0;
 
 int laneNum=1;
 
+
 const float multi=1;
 const int turnAmtL=45;
 const int turnAmtR=30;
@@ -56,7 +57,7 @@ const int turnSpeed=150;
 
 const int turnSlowSpeed=180;
 bool afterReverse=false;
-
+bool lastDodgeRed=true;
 
 void setup(void)
 {
@@ -400,6 +401,26 @@ void turnL(){
     }
     pos=str;
     ser.write(pos);
+    if (uturn&&lapCount>=2) {
+    delay(200);
+       digitalWrite(mb, LOW);
+       digitalWrite(mf, HIGH);
+      while (rd>100&&ld>100) {
+        analogWrite(me, speed);
+      }
+      analogWrite(me, 0);
+      digitalWrite(mf, LOW);
+      digitalWrite(mb, LOW);
+      digitalWrite(ms, LOW);
+      ser.detach();
+      for (int i=0; i<10; i++) {
+          pixels.setPixelColor(i, pixels.Color(255, 0, 0));
+        }
+        pixels.show();
+        while(true){
+          delay(10);
+        }
+    }
     laneNum=3;
     break;
 
@@ -417,6 +438,7 @@ void turnL(){
     pos=str;
     ser.write(pos);
     laneNum=4;
+    
     break;
   case 4:
      while (bx>20) { //270 to 250
@@ -432,8 +454,39 @@ void turnL(){
     Serial.println("skfjkbjakdsnf");
     pos=str;
     ser.write(pos);
-    if (lapCount>=2){
+    if (lapCount==1&&lastDodgeRed) {
+      for (int i=0; i<10; i++) {
+          pixels.setPixelColor(i, pixels.Color(0, 0, 255));
+        }
+        pixels.show();
+      isR=false;
+      uturn=true;
+      delay(700);
+      digitalWrite(mf, HIGH);
+    digitalWrite(mb, LOW);
+
+      while (bx>290||bx<180) {
+      sensors_event_t orientationData;
+      bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+      bx=getAngle(&orientationData);
+        fd=fdistCalc(ft,fe);
+
+        printData();
+
+      ser.write(str-turnAmtL);
+    }
+    ser.write(str);
+    digitalWrite(mf, LOW);
+    digitalWrite(mb, HIGH);
+    delay(700);
+    digitalWrite(mf, HIGH);
+    digitalWrite(mb, LOW);
+    laneNum=2;
+      
+    }else if (lapCount>=2){
        delay(200);
+       digitalWrite(mb, LOW);
+       digitalWrite(mf, HIGH);
       while (rd>100&&ld>100) {
         analogWrite(me, speed);
       }
@@ -443,10 +496,8 @@ void turnL(){
       digitalWrite(ms, LOW);
       ser.detach();
     }
-    lapCount++;
-    laneNum=1;
-    break;
-  }
+    
+  else{
   analogWrite(me, speed);
   //digitalWrite(mf, LOW);
   //digitalWrite(mb, HIGH);
@@ -454,7 +505,11 @@ void turnL(){
   afterReverse=true;
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
+  }
 
+}
+digitalWrite(mb, LOW);
+digitalWrite(mf, HIGH);
 }
   
 
@@ -495,7 +550,36 @@ void turnR(){
     }
     pos=str;
     ser.write(pos);
-    if (lapCount>=2){
+    if (lapCount==1&&lastDodgeRed) {
+      for (int i=0; i<10; i++) {
+          pixels.setPixelColor(i, pixels.Color(0, 0, 255));
+        }
+        pixels.show();
+      isR=false;
+      uturn=true;
+      delay(700);
+      digitalWrite(mf, HIGH);
+    digitalWrite(mb, LOW);
+
+      while (bx>180||bx<70) {
+      sensors_event_t orientationData;
+      bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+      bx=getAngle(&orientationData);
+        fd=fdistCalc(ft,fe);
+
+        printData();
+
+      ser.write(str+turnAmtR);
+    }
+    ser.write(str);
+    digitalWrite(mf, LOW);
+    digitalWrite(mb, HIGH);
+    delay(700);
+    digitalWrite(mf, HIGH);
+    digitalWrite(mb, LOW);
+    laneNum=4;
+      
+    }else if (lapCount>=2){
        delay(200);
       while (rd>100&&ld>100) {
         analogWrite(me, speed);
@@ -505,9 +589,10 @@ void turnR(){
       digitalWrite(mb, LOW);
       digitalWrite(ms, LOW);
       ser.detach();
-    }
+    }else{
     lapCount++;
     laneNum=1;
+    }
     break;
 
   case 3:
@@ -539,7 +624,26 @@ void turnR(){
     Serial.println("skfjkbjakdsnf");
     pos=str;
     ser.write(pos);
-    
+    if (uturn&&lapCount>=2) {
+    delay(200);
+       digitalWrite(mb, LOW);
+       digitalWrite(mf, HIGH);
+      while (rd>100&&ld>100) {
+        analogWrite(me, speed);
+      }
+      analogWrite(me, 0);
+      digitalWrite(mf, LOW);
+      digitalWrite(mb, LOW);
+      digitalWrite(ms, LOW);
+      ser.detach();
+      for (int i=0; i<10; i++) {
+          pixels.setPixelColor(i, pixels.Color(255, 0, 0));
+        }
+        pixels.show();
+        while(true){
+          delay(10);
+        }
+    }
     laneNum=3;
     break;
   }
@@ -568,7 +672,6 @@ long long initial=0;
 long long after = 0;
 int dodgeAmtLeft=40;
 int dodgeAmtRight=30;
-int lastDodgeRed=true;
 
 void turnRed(){
   // ser.write(115);
@@ -695,7 +798,7 @@ void turnGreen(){
     delay(after-initial);
     ser.write(str*1.4);
     Serial.println("done");
-    lastDodgeRed=false
+    lastDodgeRed=false;
     //delay(500);
   }
 }
