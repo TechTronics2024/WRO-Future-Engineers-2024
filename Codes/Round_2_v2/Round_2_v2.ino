@@ -147,7 +147,6 @@ void loop(void)
 
 
    if (pixy.ccc.numBlocks) {
-
     Serial.println("pixy turn");
     if (getBigBlockH()>50){
       afterReverse=false;
@@ -157,7 +156,6 @@ void loop(void)
     }else if(getBigBlock()==2){
       turnGreen();
       Serial.println("green");
-
     }
    }
   }else{

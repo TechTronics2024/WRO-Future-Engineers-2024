@@ -22,7 +22,7 @@ int strdev = 0;
 const int mf = 4;
 const int mb = 5;
 const int me = 3;
-const int ms = 6;
+const int button = 6;
 
 const int rt = A0;
 const int re = A1;
@@ -65,7 +65,7 @@ void setup(void)
   pinMode(mf, OUTPUT);
   pinMode(mb, OUTPUT);
   pinMode(me, OUTPUT);
-  pinMode(ms, OUTPUT);
+  pinMode(button, INPUT_PULLUP);
   Serial.begin(9600);
   
   /* Initialise the sensor */ 
@@ -75,12 +75,16 @@ void setup(void)
   }else{Serial.println("BNO055 deteced");}
   ser.write(pos);
   Serial.println("Steering set");
-  delay(1000);
+
+  while(digitalRead(button)==1){
+    
+  }
+
   Serial.println("Motor started");
   analogWrite(me, speed);
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
-  digitalWrite(ms, HIGH);
+  //digitalWrite(ms, HIGH);
 }
 bool isR=true;
 void loop(void)
@@ -298,7 +302,7 @@ void turnL(){
       analogWrite(me, 0);
       digitalWrite(mf, LOW);
       digitalWrite(mb, LOW);
-      digitalWrite(ms, LOW);
+//      digitalWrite(ms, LOW);
       ser.detach();
     }
     lapCount++;
@@ -352,7 +356,7 @@ void turnR(){
       analogWrite(me, 0);
       digitalWrite(mf, LOW);
       digitalWrite(mb, LOW);
-      digitalWrite(ms, LOW);
+//      digitalWrite(ms, LOW);
       ser.detach();
     }
     lapCount++;

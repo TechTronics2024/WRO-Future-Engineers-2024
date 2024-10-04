@@ -146,10 +146,10 @@ void loop(void)
     }
 
 
-   if (pixy.ccc.numBlocks) {
+   if (pixy.ccc.numBlocks&&fd>15) {
 
     Serial.println("pixy turn");
-    if (getBigBlockH()>50){
+    if (getBigBlockH()>40){
       afterReverse=false;
     if (getBigBlock()==1) {
       turnRed();
@@ -274,6 +274,11 @@ void loop(void)
 }
 int fdSum=0;
 void turnCheck(){
+  Se
+  for (int i=0; i<10; i++) {
+          pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+        }
+        pixels.show();
   for (int i=0; i<5; i++) {
   fd=fdistCalc(ft, fe);
   fdSum+=fd;
@@ -433,15 +438,7 @@ void turnL(){
     pos=str;
     ser.write(pos);
     if (lapCount>=2){
-       delay(200);
-      while (rd>100&&ld>100) {
-        analogWrite(me, speed);
-      }
-      analogWrite(me, 0);
-      digitalWrite(mf, LOW);
-      digitalWrite(mb, LOW);
-      digitalWrite(ms, LOW);
-      ser.detach();
+       park();
     }
     lapCount++;
     laneNum=1;
@@ -457,7 +454,15 @@ void turnL(){
 
 }
   
-
+void park(){
+    for (int i=0; i<10; i++) {
+          pixels.setPixelColor(i, pixels.Color(255, 0, 255));
+        }
+  pixels.show();
+  while (true) {
+  
+  }
+}
 
 
 void turnR(){
@@ -496,15 +501,7 @@ void turnR(){
     pos=str;
     ser.write(pos);
     if (lapCount>=2){
-       delay(200);
-      while (rd>100&&ld>100) {
-        analogWrite(me, speed);
-      }
-      analogWrite(me, 0);
-      digitalWrite(mf, LOW);
-      digitalWrite(mb, LOW);
-      digitalWrite(ms, LOW);
-      ser.detach();
+      park();
     }
     lapCount++;
     laneNum=1;
@@ -615,18 +612,18 @@ void turnRed(){
   else {
     Serial.println("Red left, Big Right Turn");
     initial=millis();
-    while (getBigBlockH()>40&&getBigBlockC()>20) {
+    while (getBigBlockH()>30&&getBigBlockC()>20) {
       ser.write(str+dodgeAmtRight);
       Serial.print(getBigBlockH());
       Serial.print("\t");
       Serial.println(getBigBlockC());
     }
-    delay(50);
+    delay(200);
     after=millis();
     ser.write(str-dodgeAmtLeft);
   //  Serial.println(after-initial);
     //delay(500);
-    delay((after-initial)*1.4);
+    delay((after-initial)*1.6);
     ser.write(str);
     Serial.println("done");
     lastDodgeRed=true;
@@ -651,7 +648,7 @@ void turnGreen(){
   analogWrite(me, turnSlowSpeed);
 
   int x=getBigBlockC();
-  if(x>235){
+  if(x>265){
     Serial.println("Green Right, Small Left Turn");
      ser.write(str);
   }
@@ -664,7 +661,7 @@ void turnGreen(){
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
   }
-  else if (x<25) {
+  else if (x<50) {
   digitalWrite(mf, LOW);
     digitalWrite(mb, HIGH);
   delay(300);
@@ -682,18 +679,18 @@ void turnGreen(){
   else {
     Serial.println("Green left, Steep Left Turn");
     initial=millis();
-    while (getBigBlockH()>40&&getBigBlockC()<280) {
+    while (getBigBlockH()>30&&getBigBlockC()<280) {
       ser.write(str-dodgeAmtLeft);
       Serial.print(getBigBlockH());
       Serial.print("\t");
       Serial.println(getBigBlockC());
     }
-    delay(100);
+    delay(300);
     after=millis();
     ser.write(str+dodgeAmtRight);
   //  Serial.println(after-initial);
     delay(after-initial);
-    ser.write(str*1.4);
+    ser.write(str*1.6);
     Serial.println("done");
     lastDodgeRed=false;
     //delay(500);

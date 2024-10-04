@@ -401,26 +401,7 @@ void turnL(){
     }
     pos=str;
     ser.write(pos);
-    if (uturn&&lapCount>=2) {
-    delay(200);
-       digitalWrite(mb, LOW);
-       digitalWrite(mf, HIGH);
-      while (rd>100&&ld>100) {
-        analogWrite(me, speed);
-      }
-      analogWrite(me, 0);
-      digitalWrite(mf, LOW);
-      digitalWrite(mb, LOW);
-      digitalWrite(ms, LOW);
-      ser.detach();
-      for (int i=0; i<10; i++) {
-          pixels.setPixelColor(i, pixels.Color(255, 0, 0));
-        }
-        pixels.show();
-        while(true){
-          delay(10);
-        }
-    }
+    
     laneNum=3;
     break;
 
@@ -454,7 +435,8 @@ void turnL(){
     Serial.println("skfjkbjakdsnf");
     pos=str;
     ser.write(pos);
-    if (lapCount==1&&lastDodgeRed) {
+
+    if (lapCount==2&&lastDodgeRed&&!uturn) {
       for (int i=0; i<10; i++) {
           pixels.setPixelColor(i, pixels.Color(0, 0, 255));
         }
@@ -495,9 +477,14 @@ void turnL(){
       digitalWrite(mb, LOW);
       digitalWrite(ms, LOW);
       ser.detach();
+      while (true){
+    for (int i=0; i<10; i++) {
+          pixels.setPixelColor(i, pixels.Color(255, 0, 0));
+        }
+  }
     }
     
-  else{
+  else if(!uturn){
   analogWrite(me, speed);
   //digitalWrite(mf, LOW);
   //digitalWrite(mb, HIGH);
@@ -505,6 +492,7 @@ void turnL(){
   afterReverse=true;
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
+  
   }
 
 }
@@ -550,7 +538,7 @@ void turnR(){
     }
     pos=str;
     ser.write(pos);
-    if (lapCount==1&&lastDodgeRed) {
+    if (lapCount==1&&lastDodgeRed&&!uturn) {
       for (int i=0; i<10; i++) {
           pixels.setPixelColor(i, pixels.Color(0, 0, 255));
         }
