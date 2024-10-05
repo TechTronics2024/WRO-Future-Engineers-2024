@@ -21,10 +21,11 @@ int str = 98;
 int pos=str;
 int strdev = 0;
 
+int buttonState = 0;
 const int mf = 4;
 const int mb = 5;
 const int me = 3;
-const int ms = 6;
+const int button = 6;
 
 const int rt = A0;
 const int re = A1;
@@ -48,14 +49,16 @@ int dif=0;
 int laneNum=1;
 
 const float multi=1;
-const int turnAmtL=45;
-const int turnAmtR=30;
+ int turnAmtL=45;
+ int turnAmtR=30;
 
-const int speed=130;
-const int turnSpeed=150;
+const int speed=150;
+const int turnSpeed=180;
 
 const int turnSlowSpeed=180;
 bool afterReverse=false;
+bool isDone=false;
+
 
 
 void setup(void)
@@ -70,7 +73,7 @@ void setup(void)
   pinMode(mf, OUTPUT);
   pinMode(mb, OUTPUT);
   pinMode(me, OUTPUT);
-  pinMode(ms, OUTPUT);
+  pinMode(button, INPUT_PULLUP);
   Serial.begin(9600);
   pixy.init();
 pixels.begin();
@@ -82,12 +85,16 @@ pixels.show();
   }else{Serial.println("BNO055 deteced");}
   ser.write(pos);
   Serial.println("Steering set");
-  delay(1000);
+
+while(buttonState==1){
+buttonState=digitalRead(button);
+}
   Serial.println("Motor started");
   analogWrite(me, speed);
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
-  digitalWrite(ms, HIGH);
+ // digitalWrite(ms, HIGH);
+
   //pixy.setLED(0, 0, 0);
   pixels.setBrightness(200);
   for (int i=0; i<10; i++) {
@@ -102,6 +109,10 @@ int turnDist=30;
 bool neoGreen=true;
 int blinkDelay=100;
 long long prevBlink=millis();
+
+long long prevSwitch=millis();
+bool bright=true;
+int switchDelay=300;
 void loop(void)
 {
   sensors_event_t orientationData;
@@ -145,6 +156,40 @@ void loop(void)
         Serial.println("on");
     }
 
+// if (lapCount>=0) {
+//     if (millis()-prevSwitch>switchDelay) {
+//       prevSwitch=millis();
+//       if (bright) {
+//         // for (int i=0; i<10; i++) {
+//         //   pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+//         // }
+//         // pixels.show();
+//         pixy.setCameraBrightness(250);
+//         //pixy.setLED(0, 0, 0);
+//         Serial.println("off");
+//         bright=false;
+//       }else {
+//         // for (int i=0; i<10; i++) {
+//         //   pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+//         // }
+//         // pixels.show();
+
+//         pixy.setCameraBrightness(170);
+//         Serial.println("on");
+//         //pixy.setLED(0, 255, 0);
+
+//         neoGreen=true;
+//       }
+//     }
+//     }else {
+//     //  for (int i=0; i<10; i++) {
+//     //       pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+//     //     }
+//     //     pixels.show();
+//     pixy.setCameraBrightness(250);
+//         Serial.println("on");
+//     }
+park();
 
    if (pixy.ccc.numBlocks&&fd>15) {
 
@@ -163,34 +208,50 @@ void loop(void)
   }else{
     switch (laneNum) {
   case 1:
-    if ((fd<turnDist)&&(355<bx<5)) {
-    turnCheck();
+    if ((350<bx||bx<10)) {
+      if(fd<turnDist){
+    turnCheck();}
+  center();
+
   }
     break;
 
   case 2:
-    if ((fd<turnDist)&&(265<bx<275)) {
-        turnCheck();
+    if ((260<bx&&bx<280)) {
+        if(fd<turnDist){
+        turnCheck();}
+  center();
+
     }
 
     break;
   case 3:
-    if ((fd<turnDist)&&(175<bx<185)) {
-        turnCheck();
+    if ((170<bx&&bx<190)) {
+      if(fd<turnDist){
+        turnCheck();}
+ center();
+
     }
 
     break;
   case 4:
-    if ((fd<turnDist)&&(85<bx<95)) {
-        turnCheck();
+    if ((80<bx&&bx<100)) {
+      if(fd<turnDist){
+        turnCheck();}
+ center();
+
     }
     break;
 
   }
-  } 
+  }
+// if (laneNum!=1&&lapCount!=0) {
+//   center();
+// }
+
   if (afterReverse){
     rd=distCalc(rt, re);
-    ld=distCalc(ld, le);
+    ld=distCalc(lt, le);
       if (rd<100&&isR){
         afterReverse=false;
       }
@@ -265,6 +326,48 @@ void loop(void)
       break;
 
   }
+
+  if (isDone){
+    int sig=0;
+  int height=0;
+  int coor=0;
+  pixy.ccc.getBlocks();
+  if (pixy.ccc.numBlocks){
+  for (int i=0; i<pixy.ccc.numBlocks; i++){
+    if(pixy.ccc.blocks[i].m_height>height&&pixy.ccc.blocks[i].m_signature!=3){
+      height=pixy.ccc.blocks[i].m_height;
+      sig=pixy.ccc.blocks[i].m_signature;
+      coor=pixy.ccc.blocks[i].m_x;
+
+    }
+  }
+  }
+  if (sig==3){
+    if(isR){
+      if(coor<100){
+      pixy.setLED(0, 255, 255);
+      ser.write(str+20);
+      delay(800);
+      ser.write(str);
+      digitalWrite(mf, LOW);
+      digitalWrite(mb, HIGH);
+      }
+    }else{
+      if(coor>215){
+      pixy.setLED(0, 255, 255);
+      ser.write(str-30);
+      delay(800);
+      ser.write(str);
+      digitalWrite(mf, LOW);
+      digitalWrite(mb, HIGH);
+      }
+    }
+  while (true) {
+    
+  }
+  }
+
+  }
   if(pos>120){
     pos=120;
   }else if (pos<50) {
@@ -272,8 +375,10 @@ void loop(void)
   }
   ser.write(pos);
 }
+
 int fdSum=0;
 void turnCheck(){
+  Serial.print("turn check");
   for (int i=0; i<10; i++) {
           pixels.setPixelColor(i, pixels.Color(0, 0, 0));
         }
@@ -282,13 +387,13 @@ void turnCheck(){
   fd=fdistCalc(ft, fe);
   fdSum+=fd;
   }
-  if(fdSum/5>30){
+  if(fdSum/5>turnDist){
   if(lapCount==0 && laneNum==1) {
     rd=distCalc(rt, re);
     ld=distCalc(lt, le);
-   if (rd>100) {
+   if (rd>40) {
     isR=true;
-   }else if (ld>100) {
+   }else if (ld>40) {
     isR=false;
    }
   }
@@ -368,12 +473,13 @@ float fdistCalc(int trigPin,int echoPin){
 }
 
 void turnL(){
+  if(!isDone){
     analogWrite(me, turnSpeed);
     ser.write(str-turnAmtL);
       delay(400);
     digitalWrite(mf, LOW);
     digitalWrite(mb, HIGH);
-
+  }
   switch (laneNum) {
   case 1:
     while (bx>290||bx<180) {//290 to 270
@@ -458,18 +564,25 @@ void park(){
           pixels.setPixelColor(i, pixels.Color(255, 0, 255));
         }
   pixels.show();
-  while (true) {
+  int temp = turnAmtL;
+  turnAmtL=-1*turnAmtR;
+  turnAmtR=-1*turnAmtL;
+  isDone=true;
+  turnDist=50;
+  // while (true) {
   
-  }
+  // }
 }
 
 
 void turnR(){
+  if(!isDone){
       analogWrite(me, turnSpeed);
       ser.write(str+turnAmtR);
       delay(400);
   digitalWrite(mf, LOW);
   digitalWrite(mb, HIGH);
+  }
   switch (laneNum) {
   case 1:
     while (bx>180||bx<70) {//90 to 70
@@ -617,7 +730,7 @@ void turnRed(){
       Serial.print("\t");
       Serial.println(getBigBlockC());
     }
-    delay(200);
+    delay(400);
     after=millis();
     ser.write(str-dodgeAmtLeft);
   //  Serial.println(after-initial);
@@ -684,12 +797,12 @@ void turnGreen(){
       Serial.print("\t");
       Serial.println(getBigBlockC());
     }
-    delay(300);
+    delay(100);
     after=millis();
     ser.write(str+dodgeAmtRight);
   //  Serial.println(after-initial);
-    delay(after-initial);
-    ser.write(str*1.6);
+    delay((after-initial)*1.6);
+    ser.write(str);
     Serial.println("done");
     lastDodgeRed=false;
     //delay(500);
@@ -702,7 +815,7 @@ int getBigBlock(){
   pixy.ccc.getBlocks();
   if (pixy.ccc.numBlocks){
   for (int i=0; i<pixy.ccc.numBlocks; i++){
-    if(pixy.ccc.blocks[i].m_height>height){
+    if(pixy.ccc.blocks[i].m_height>height&&pixy.ccc.blocks[i].m_signature!=3){
       height=pixy.ccc.blocks[i].m_height;
       sig=pixy.ccc.blocks[i].m_signature;
     }
@@ -716,7 +829,7 @@ int getBigBlockH(){
   pixy.ccc.getBlocks();
   if (pixy.ccc.numBlocks){
   for (int i=0; i<pixy.ccc.numBlocks; i++){
-    if(pixy.ccc.blocks[i].m_height>h){
+    if(pixy.ccc.blocks[i].m_height>h&&pixy.ccc.blocks[i].m_signature!=3){
       h=pixy.ccc.blocks[i].m_height;
     }
   }
@@ -731,7 +844,7 @@ int getBigBlockC(){
   pixy.ccc.getBlocks();
   if (pixy.ccc.numBlocks){
   for (int i=0; i<pixy.ccc.numBlocks; i++){
-    if(pixy.ccc.blocks[i].m_height>height){
+    if(pixy.ccc.blocks[i].m_height>height&&pixy.ccc.blocks[i].m_signature!=3){
       height=pixy.ccc.blocks[i].m_height;
       sig=pixy.ccc.blocks[i].m_signature;
       coor=pixy.ccc.blocks[i].m_x;
@@ -741,3 +854,28 @@ int getBigBlockC(){
   }
   return coor;
 }    
+
+void center(){
+  if (!isDone) {
+  
+  if (isR) {
+    ld=distCalc(lt, le);
+    if (ld<35) {
+      ser.write(str+dodgeAmtRight);
+      delay(100);
+    }else if(ld>55){
+      ser.write(str-dodgeAmtLeft);
+      delay(100);
+    }
+  }else {
+    rd=distCalc(rt, re);
+    if (rd<35) {
+      ser.write(str-dodgeAmtLeft);
+      delay(100);
+    }else if (rd>55) {
+    ser.write(str+dodgeAmtRight);
+      delay(100);
+    }
+  }
+  }
+}
