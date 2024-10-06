@@ -22,8 +22,8 @@ int pos=str;
 int strdev = 0;
 
 int buttonState = 0;
-const int mf = 4;
-const int mb = 5;
+const int mf = 5;
+const int mb = 4;
 const int me = 3;
 const int button = 6;
 
@@ -41,7 +41,7 @@ float ld;
 float fd;
 
 float bx;
-
+bool uturn = false;
 long echoD;
 
 int dif=0;
@@ -100,7 +100,7 @@ buttonState=digitalRead(button);
   //pixy.setLED(0, 0, 0);
   pixels.setBrightness(200);
   for (int i=0; i<10; i++) {
-      pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+      pixels.setPixelColor(i, pixels.Color(0, 0, 0));
       //pixels.setPixelColor(i, pixels.Color(0, 0, 255));
       //pixels.setPixelColor(i, pixels.Color(0, 0, 0));
   }
@@ -126,37 +126,37 @@ void loop(void)
   // rd=distCalc(rt, re);
   // ld=distCalc(lt, le);
 
-   printData();
+   //printData();
     analogWrite(me, speed);
-    if (fd<60) {
-    if (millis()-prevBlink>blinkDelay) {
-      prevBlink=millis();
-      if (neoGreen) {
-        for (int i=0; i<10; i++) {
-          pixels.setPixelColor(i, pixels.Color(0, 0, 0));
-        }
-        pixels.show();
-        //pixy.setLED(0, 0, 0);
-        Serial.println("off");
-        neoGreen=false;
-      }else {
-        for (int i=0; i<10; i++) {
-          pixels.setPixelColor(i, pixels.Color(0, 255, 0));
-        }
-        pixels.show();
-        Serial.println("on");
-        //pixy.setLED(0, 255, 0);
+    // if (fd<60) {
+    // if (millis()-prevBlink>blinkDelay) {
+    //   prevBlink=millis();
+    //   if (neoGreen) {
+    //     for (int i=0; i<10; i++) {
+    //       pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+    //     }
+    //     pixels.show();
+    //     //pixy.setLED(0, 0, 0);
+    //     Serial.println("off");
+    //     neoGreen=false;
+    //   }else {
+    //     for (int i=0; i<10; i++) {
+    //       pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+    //     }
+    //     pixels.show();
+    //     Serial.println("on");
+    //     //pixy.setLED(0, 255, 0);
 
-        neoGreen=true;
-      }
-    }
-    }else {
-     for (int i=0; i<10; i++) {
-          pixels.setPixelColor(i, pixels.Color(0, 255, 0));
-        }
-        pixels.show();
-        Serial.println("on");
-    }
+    //     neoGreen=true;
+    //   }
+    // }
+    // }else {
+    //  for (int i=0; i<10; i++) {
+    //       pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+    //     }
+    //     pixels.show();
+    //     Serial.println("on");
+    // }
 
 // if (lapCount>=0) {
 //     if (millis()-prevSwitch>switchDelay) {
@@ -215,7 +215,7 @@ park();
     if ((350<bx||bx<10)) {
       if(fd<turnDist){
     turnCheck();}
-  center();
+  //center();
 
   }
     break;
@@ -224,7 +224,7 @@ park();
     if ((260<bx&&bx<280)) {
         if(fd<turnDist){
         turnCheck();}
-  center();
+  //center();
 
     }
 
@@ -233,7 +233,7 @@ park();
     if ((170<bx&&bx<190)) {
       if(fd<turnDist){
         turnCheck();}
- center();
+ //center();
 
     }
 
@@ -242,7 +242,7 @@ park();
     if ((80<bx&&bx<100)) {
       if(fd<turnDist){
         turnCheck();}
- center();
+ //center();
 
     }
     break;
@@ -550,12 +550,12 @@ void turnL(){
     Serial.println("skfjkbjakdsnf");
     pos=str;
     ser.write(pos);
-    if (lapCount==2&&lastDodgeRed&&!uturn) {
+    if (lapCount==1&&lastDodgeRed&&!uturn) {
       for (int i=0; i<10; i++) {
           pixels.setPixelColor(i, pixels.Color(0, 0, 255));
         }
         pixels.show();
-      isR=false;
+      isR=true;
       uturn=true;
       delay(700);
       digitalWrite(mf, HIGH);
@@ -579,11 +579,11 @@ void turnL(){
     digitalWrite(mb, LOW);
     laneNum=2;
       
-    }else if (lapCount>=2&&!uturn){
+    }else if (lapCount>=2){
        park();
     }
     
-  else if(!uturn){
+  else{
   analogWrite(me, speed);
   //digitalWrite(mf, LOW);
   //digitalWrite(mb, HIGH);
@@ -591,7 +591,8 @@ void turnL(){
   afterReverse=true;
   digitalWrite(mf, HIGH);
   digitalWrite(mb, LOW);
-  
+  laneNum=1;
+  lapCount+=1;
   }
 
   }
@@ -658,11 +659,42 @@ void turnR(){
     }
     pos=str;
     ser.write(pos);
-    if (lapCount>=2){
-      park();
+    if (lapCount==1&&lastDodgeRed&&!uturn) {
+      for (int i=0; i<10; i++) {
+          pixels.setPixelColor(i, pixels.Color(0, 0, 255));
+        }
+        pixels.show();
+      isR=false;
+      uturn=true;
+      delay(700);
+      digitalWrite(mf, HIGH);
+    digitalWrite(mb, LOW);
+
+      while (bx>180||bx<70) {
+      sensors_event_t orientationData;
+      bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+      bx=getAngle(&orientationData);
+        fd=fdistCalc(ft,fe);
+
+        printData();
+
+      ser.write(str+turnAmtR);
     }
+    ser.write(str);
+    digitalWrite(mf, LOW);
+    digitalWrite(mb, HIGH);
+    delay(700);
+    digitalWrite(mf, HIGH);
+    digitalWrite(mb, LOW);
+    laneNum=1;
+      
+    }else if (lapCount>=2){
+       park();
+    }else{
     lapCount++;
     laneNum=1;
+    }
+    
     break;
 
   case 3:
@@ -675,6 +707,10 @@ void turnR(){
         printData();
 
       ser.write(str-turnAmtL);
+    }
+    
+    if(lapCount==2&&uturn){
+      park();
     }
     pos=str;
     ser.write(pos);
@@ -723,7 +759,6 @@ long long initial=0;
 long long after = 0;
 int dodgeAmtLeft=40;
 int dodgeAmtRight=30;
-int lastDodgeRed=true;
 
 void turnRed(){
   // ser.write(115);

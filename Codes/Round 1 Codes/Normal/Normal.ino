@@ -19,8 +19,8 @@ int str = 98;
 int pos=str;
 int strdev = 0;
 
-const int mf = 4;
-const int mb = 5;
+const int mf = 5;
+const int mb = 4;
 const int me = 3;
 const int button = 6;
 
@@ -49,9 +49,9 @@ const float multi=1;
 const int turnAmtL=40;
 const int turnAmtR=30;
 
-const int speed=255;
-const int turnSpeed=255;
-const int slowSpeed=180;
+const int speed=180;
+const int turnSpeed=200;
+const int slowSpeed=150;
 
 void setup(void)
 {

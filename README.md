@@ -5,7 +5,7 @@ This repository contains engineering materials of a self-driven vehicle's model 
 
 ## Content
 
-* `Team Pictures` contains 2 photos of the team 
+* `Team Pictures` contains 1 photo of the team 
 * `Vehicle Pictures` contains 6 photos of the vehicle 
 * `Bot Videos` contains the video.md file with the link to a video where driving demonstration exists
 * `Electronics` contains one schematic diagram in form of a PDF and a the bill_of_materials.md file with the BOM (bill of materials) of the electromechanical components illustrating all the elements (electronic components and motors) used in the vehicle and how they connect to each other.
